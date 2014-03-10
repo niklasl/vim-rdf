@@ -3,6 +3,7 @@ if exists("b:current_syntax")
 endif
 
 runtime! syntax/html.vim
+runtime! syntax/html/*.vim
 unlet b:current_syntax
 runtime! syntax/rdfa.vim
 unlet b:current_syntax

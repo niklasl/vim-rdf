@@ -1,7 +1,7 @@
 Vim-RDF
 =======
 
-This is a bundle of vimfiles for editing RDF data. It includes various RDF syntax highlighting and a plugin for RDF prefix completion.
+This is a bundle of vimfiles for editing [RDF](http://www.w3.org/TR/rdf11-primer/) data. It includes various RDF syntax highlighting and a plugin for RDF prefix completion.
 
 
 ## Syntax highlighting
