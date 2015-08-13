@@ -13,7 +13,7 @@ hi def link turtleDeclaration n3Declaration
 
 syn region turtleString         matchgroup=n3StringDelim start=+'+ end=+'+ skip=+\\\\\|\\'+ contains=n3Escape
 hi def link turtleString n3String
-syn region turtleMultilineString matchgroup=n3StringDelim start=+'''+ end=+'''+ keepend contains=n3Escape
+syn region turtleMultilineString matchgroup=n3StringDelim start=+'''+ end=+'''+ skip=+\\\\\|\\'+ keepend contains=n3Escape
 hi def link turtleMultilineString n3MultilineString
 
 let b:current_syntax = "turtle"

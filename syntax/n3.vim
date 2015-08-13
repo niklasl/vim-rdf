@@ -51,7 +51,7 @@ syn region n3URI                matchgroup=n3URI start=+<+ end=+>+ skip=+\\\\\|\
 " TODO: n3URITokens
 syn region n3String             matchgroup=n3StringDelim start=+"+ end=+"+ skip=+\\\\\|\\"+ contains=n3Escape
 " TODO: n3Escape
-syn region n3MultilineString    matchgroup=n3StringDelim start=+"""+ end=+"""+ keepend contains=n3Escape
+syn region n3MultilineString    matchgroup=n3StringDelim start=+"""+ end=+"""+ skip=+\\\\\|\\"+ keepend contains=n3Escape
 
 syn match   n3Verb              "<=\|=>\|="
 
