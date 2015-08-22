@@ -1,15 +1,15 @@
 "===============================================================
-" RDF Vocabulary/Model Omni-Completion for Vim 7+
+" RDF Vocabulary Namespace Completion for Vim 7+
 " Maintainer: Niklas Lindström <lindstream@gmail.com>
-" Version: 1.2.1
-" Updated: 2012-09-22
+" Version: 1.3.0
+" Updated: 2015-08-22
 " Published: 2007-03-25
 " URL: <http://www.vim.org/scripts/script.php?script_id=1835>
 "===============================================================
 "
 " USAGE:
-" In a file with namespace prefix declarations similar to XML, Turtle/Notation3
-" or SPARQL, call
+" In a file with namespace prefix declarations similar to XML, Turtle or
+" SPARQL, call
 "
 "   :RDF
 "
@@ -32,7 +32,7 @@
 " Prefixes are bound to vocabularies by looking for anything in:
 "
 "   - XML "xmlns:[pfx]" style
-"   - Notation 3 "@prefix [pfx]" style
+"   - Turtle "@prefix [pfx]" style
 "   - SPARQL "PREFIX [pfx]" style
 "   - JSON '"PREFIX": "pfx"' style
 "
@@ -44,7 +44,7 @@
 "
 "   :RDF quit
 "
-" to restore the original omnifunc (if any).
+" to restore the original completefunc (if any).
 "
 " REQUIRES:
 " Vim compiled with Python and RDFLib installed for Python.
@@ -52,9 +52,8 @@
 "===============================================================
 
 
-func! RdfnsArgs(A,L,P)
+func! s:RdfnsArgs(A,L,P)
     return "reload\nquit"
 endfunc
 
-command! -complete=custom,RdfnsArgs -nargs=* RDF :call rdfnscomplete#Rdfns(<f-args>)
-
+command! -complete=custom,s:RdfnsArgs -nargs=* RDF :call rdfnscomplete#setup(<f-args>)
