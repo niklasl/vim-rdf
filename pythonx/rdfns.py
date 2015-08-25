@@ -2,7 +2,8 @@ import logging
 import re
 import os
 from urllib2 import quote
-from rdflib import Graph, ConjunctiveGraph, RDF, RDFS, Namespace
+from rdflib import Graph, ConjunctiveGraph
+from rdflib.namespace import RDF, RDFS, Namespace, split_uri
 from rdflib.parser import create_input_source
 from rdflib.util import guess_format, SUFFIX_FORMAT_MAP
 
@@ -17,9 +18,6 @@ RDF_VOCAB_CACHE_DIRS = [
 MAX_LINE_SCAN = 80
 MATCH_NS_DECL = re.compile(
         r'''(?:@prefix\s+|xmlns:?|prefix\s+|PREFIX\s+|")(\w*)"?[:=]\s*[<"'"](.+?)[>"']''')
-MATCH_URI_LEAF = re.compile(r'(.+[#/])([A-Za-z0-9_-]+)$')
-
-PREFIX_URI_TEMPLATE = 'http://prefix.cc/{pfx}.file.ttl'
 
 SUFFIX_FORMAT_MAP['jsonld'] = 'json-ld'
 
@@ -42,48 +40,19 @@ def get_pfxns_map(buffer):
     return {pfx: ns for line in buffer[:MAX_LINE_SCAN]
             for pfx, ns in MATCH_NS_DECL.findall(line)}
 
-def split_uri(uri):
-    uri = unicode(uri)
-    for base, leaf in MATCH_URI_LEAF.findall(uri):
-        return base, leaf
-    return None, None
-
 
 class Tool(object):
 
-    def __init__(self, basedir):
-        self._graphcache = GraphCache(basedir)
-        self._prefix_file = os.path.join(basedir, 'prefixes.ttl')
-        self.reload()
-
-    def reload(self):
+    def __init__(self, basedir=None):
+        basedir = basedir or find_rdf_vocab_cache()
+        self.prefixes = PrefixCache(os.path.join(basedir, 'prefixes.ttl'))
+        self.graphcache = GraphCache(basedir)
         self._terms_by_ns = {}
-        self._load_prefixes()
-
-    def _load_prefixes(self):
-        self._pfxgraph = Graph()
-        if os.path.isfile(self._prefix_file):
-            self._pfxgraph.parse(self._prefix_file, format='turtle')
-
-    def get_pfx_iri(self, pfx):
-        ns = self._pfxgraph.store.namespace(pfx)
-        if not ns:
-            url = PREFIX_URI_TEMPLATE.format(pfx=pfx)
-            logger.debug("Fetching <%s>" % url)
-            try:
-                self._pfxgraph.parse(url, format='turtle')
-            except: # not found
-                logger.debug("Could not read <%s>" % url)
-            if self._prefix_file:
-                logger.debug("Saving prefixes to '%s'" % self._prefix_file)
-                self._pfxgraph.serialize(self._prefix_file, format='turtle')
-            ns = self._pfxgraph.store.namespace(pfx)
-        return ns
 
     def get_vocab_terms(self, ns):
         terms = self._terms_by_ns.get(ns)
         if terms is None and ns:
-            graph = self._graphcache.load(ns)
+            graph = self.graphcache.load(ns)
             self._collect_vocab_terms(graph, ns)
         return self._terms_by_ns.get(ns)
 
@@ -91,45 +60,74 @@ class Tool(object):
         terms = set()
         items = set(graph.subjects(RDF.type|RDFS.isDefinedBy, None))
         for subject in items:
-            uri, leaf = split_uri(subject)
-            if uri == str(ns) and leaf:
-                terms.add(leaf)
+            try:
+                uri, leaf = split_uri(subject)
+                if uri == unicode(ns) and leaf:
+                    terms.add(leaf)
+            except:
+                pass
         self._terms_by_ns[ns] = sorted(terms)
 
     def get_completions(self, buffer, context, base):
         prefix = context.split(':')[0]
-
-        if prefix.lower() == 'prefix':
-            pfx_fmt = '%s: <%s>'
-        elif prefix == 'xmlns':
-            pfx_fmt = '%s="%s"'
-        else:
-            pfx_fmt = None
-
+        pfx_fmt = ('%s: <%s>' if prefix.lower() == 'prefix'
+                else '%s="%s"' if prefix == 'xmlns'
+                else None)
         if pfx_fmt:
-            results = [pfx_fmt % (pfx, ns)
-                for pfx, ns in self._pfxgraph.namespaces()
-                if pfx.startswith(base)]
-            if not results:
-                ns = self.get_pfx_iri(base)
-                if ns:
-                    results = [pfx_fmt % (base, ns)]
-
+            results = self._get_pfx_declarations(pfx_fmt, base)
         else:
-            pfxns = get_pfxns_map(buffer)
-            ns = pfxns.get(prefix)
-            withprefixes = ':' not in context
-            curies = self._rdfns_vocabulary_names(ns, withprefixes)
-            results = [value for value in curies if value.startswith(base)]
-
+            ns = get_pfxns_map(buffer).get(prefix)
+            curies = self._get_vocab_names(ns, ':' not in context)
+            results = (curie for curie in curies if curie.startswith(base))
         return [{'word': value, 'icase': 0} for value in results]
 
-    def _rdfns_vocabulary_names(self, ns, withprefixes=False):
+    def _get_pfx_declarations(self, pfx_fmt, base):
+        results = [pfx_fmt % (pfx, ns)
+            for pfx, ns in self.prefixes.namespaces()
+            if pfx.startswith(base)]
+        if not results:
+            ns = self.prefixes.lookup(base)
+            if ns:
+                results = [pfx_fmt % (base, ns)]
+        return results
+
+    def _get_vocab_names(self, ns, withprefixes=False):
         vocab = self.get_vocab_terms(ns) or []
-        pfxs = []
         if withprefixes:
-            pfxs += [pfx+':' for pfx, ns in sorted(self._pfxgraph.namespaces())]
-        return pfxs + vocab
+            pfxs = [pfx+':' for pfx, ns in sorted(self.prefixes.namespaces())]
+            return pfxs + vocab
+        else:
+            return vocab
+
+
+class PrefixCache(object):
+
+    PREFIX_URI_TEMPLATE = 'http://prefix.cc/{pfx}.file.ttl'
+
+    def __init__(self, prefix_file):
+        self._prefix_file = prefix_file
+        self._pfxgraph = Graph()
+        if os.path.isfile(self._prefix_file):
+            self._pfxgraph.parse(self._prefix_file, format='turtle')
+
+    def lookup(self, pfx):
+        ns = self._pfxgraph.store.namespace(pfx)
+        return ns or self._fetch_ns(pfx)
+
+    def namespaces(self):
+        return self._pfxgraph.namespaces()
+
+    def _fetch_ns(self, pfx):
+        url = self.PREFIX_URI_TEMPLATE.format(pfx=pfx)
+        logger.debug("Fetching <%s>" % url)
+        try:
+            self._pfxgraph.parse(url, format='turtle')
+        except: # not found
+            logger.debug("Could not read <%s>" % url)
+        if self._prefix_file:
+            logger.debug("Saving prefixes to '%s'" % self._prefix_file)
+            self._pfxgraph.serialize(self._prefix_file, format='turtle')
+        return self._pfxgraph.store.namespace(pfx)
 
 
 class GraphCache(object):
@@ -178,14 +176,13 @@ class GraphCache(object):
 
 
 if __name__ == '__main__':
-    import rdfns
     import sys
     args = sys.argv[1:]
 
-    rdfns_tool = rdfns.Tool(rdfns.find_rdf_vocab_cache())
+    rdfns_tool = Tool()
 
     pfx = args.pop(0) if args else 'schema'
-    uri = rdfns_tool.get_pfx_iri(pfx)
+    uri = rdfns_tool.prefixes.lookup(pfx)
     print("%s: %s" % (pfx, uri))
     for t in rdfns_tool.get_vocab_terms(uri):
         print("    %s" % t)

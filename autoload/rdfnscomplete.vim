@@ -5,17 +5,14 @@ endif
 
 python <<END
 import vim
-
-import sys, logging
-l = logging.getLogger()
-l.addHandler(logging.StreamHandler(stream=sys.stdout))
-
+import logging
+logging.getLogger().addHandler(logging.StreamHandler())
 try:
     import rdfns
 except ImportError as e:
     print("Failed to load rdfns: %s" % e)
-
-rdfns_tool = rdfns.Tool(rdfns.find_rdf_vocab_cache())
+else:
+    rdfns_tool = rdfns.Tool()
 END
 
 
@@ -49,8 +46,9 @@ func! rdfnscomplete#complete(findstart, base)
     endif
 endfunc
 
+
 func! rdfnscomplete#reload()
-    python rdfns_tool.reload()
+    python rdfns_tool = reload(rdfns).Tool()
 endfunc
 
 
