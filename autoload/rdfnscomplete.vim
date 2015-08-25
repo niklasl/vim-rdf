@@ -9,13 +9,13 @@ import vim
 import sys, logging
 l = logging.getLogger()
 l.addHandler(logging.StreamHandler(stream=sys.stdout))
-l.setLevel(logging.WARN)
 
 try:
     import rdfns
 except ImportError as e:
     print("Failed to load rdfns: %s" % e)
-rdfns_tool = rdfns.Tool(rdfns.find_rdf_model_dir())
+
+rdfns_tool = rdfns.Tool(rdfns.find_rdf_vocab_cache())
 END
 
 

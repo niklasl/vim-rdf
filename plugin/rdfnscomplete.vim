@@ -1,8 +1,8 @@
 "===============================================================
 " RDF Vocabulary Namespace Completion for Vim 7+
 " Maintainer: Niklas Lindström <lindstream@gmail.com>
-" Version: 1.3.0
-" Updated: 2015-08-22
+" Version: 1.4.0
+" Updated: 2015-08-24
 " Published: 2007-03-25
 " URL: <http://www.vim.org/scripts/script.php?script_id=1835>
 "===============================================================
@@ -14,12 +14,14 @@
 "   :RDF
 "
 " to turn on completion on terms within a namespace using the preceding prefix.
-" This will load all RDF/XML and n3-files found in one of the following dirs:
 "
-"   - $RDF_MODEL_FILES (environment variable)
-"   - ~/rdfmodels/
-"   - ~/Documents/rdfmodels/
-"   - /usr/local/share/rdfmodels/
+" This will load prefixes and vocabularies from the web, and cache them in one
+" of the following dirs:
+"
+"   - $RDF_VOCAB_CACHE (environment variable)
+"   - ~/rdf-vocab-cache/
+"   - ~/Documents/rdf-vocab-cache/
+"   - /usr/local/share/rdf-vocab-cache/
 "
 " Completion will work on:
 "
@@ -27,7 +29,7 @@
 "   - ..            -> anything known, both prefixes and non-prefixed terms
 "   - xmlns:..      -> any namespaces gathered from usage in loaded files; xml
 "                      atribute-style
-"   - prefix [..]   -> -|| -; Notation3/SPARQL-style (<..namespace..>)
+"   - prefix [..]   -> -|| -; Turtle/SPARQL-style (<..namespace..>)
 "
 " Prefixes are bound to vocabularies by looking for anything in:
 "
@@ -40,7 +42,7 @@
 "
 "   :RDF reload
 "
-" to reload model files, and
+" to reload cached data, and
 "
 "   :RDF quit
 "
