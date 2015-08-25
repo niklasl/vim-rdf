@@ -1,8 +1,8 @@
 "===============================================================
 " RDF Vocabulary Namespace Completion for Vim 7+
 " Maintainer: Niklas Lindström <lindstream@gmail.com>
-" Version: 1.4.0
-" Updated: 2015-08-24
+" Version: 1.4.1
+" Updated: 2015-08-26
 " Published: 2007-03-25
 " URL: <http://www.vim.org/scripts/script.php?script_id=1835>
 "===============================================================
@@ -31,12 +31,13 @@
 "                      atribute-style
 "   - prefix [..]   -> -|| -; Turtle/SPARQL-style (<..namespace..>)
 "
-" Prefixes are bound to vocabularies by looking for anything in:
+" Prefixes are bound to vocabularies by looking for matches like:
 "
-"   - XML "xmlns:[pfx]" style
-"   - Turtle "@prefix [pfx]" style
-"   - SPARQL "PREFIX [pfx]" style
-"   - JSON '"PREFIX": "pfx"' style
+"   - XML: xmlns:[PFX]="..."
+"   - Turtle: @prefix [PFX] <...>
+"   - SPARQL: PREFIX [PFX] <...>
+"   - JSON-LD: '"[PFX]|@vocab": "..."'
+"   - RDFa: vocab="..."
 "
 " Call
 "

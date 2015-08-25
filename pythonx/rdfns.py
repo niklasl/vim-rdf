@@ -17,7 +17,7 @@ RDF_VOCAB_CACHE_DIRS = [
 
 MAX_LINE_SCAN = 80
 MATCH_NS_DECL = re.compile(
-        r'''(?:@prefix\s+|xmlns:?|prefix\s+|PREFIX\s+|")(\w*)"?[:=]\s*[<"'"](.+?)[>"']''')
+        r'''(?:@prefix\s+|xmlns:?|vocab|prefix\s+|PREFIX\s+|")(?:@vocab|(\w*))"?[:=]\s*[<"'"](.+?)[>"']''')
 
 SUFFIX_FORMAT_MAP['jsonld'] = 'json-ld'
 
