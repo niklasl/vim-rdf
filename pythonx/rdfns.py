@@ -76,8 +76,8 @@ class Tool(object):
         if pfx_fmt:
             results = self._get_pfx_declarations(pfx_fmt, base)
         else:
-            ns = get_pfxns_map(buffer).get(prefix)
-            curies = self._get_vocab_names(ns, ':' not in context)
+            curies = self._get_values(get_pfxns_map(buffer), prefix,
+                    ':' not in context)
             results = (curie for curie in curies if curie.startswith(base))
         return [{'word': value, 'icase': 0} for value in results]
 
@@ -91,13 +91,13 @@ class Tool(object):
                 results = [pfx_fmt % (base, ns)]
         return results
 
-    def _get_vocab_names(self, ns, withprefixes=False):
-        vocab = self.get_vocab_terms(ns) or []
+    def _get_values(self, pfxns, prefix, withprefixes):
+        ns = pfxns.get(prefix)
+        terms = self.get_vocab_terms(ns) or []
         if withprefixes:
-            pfxs = [pfx+':' for pfx, ns in sorted(self.prefixes.namespaces())]
-            return pfxs + vocab
+            return [pfx+':' for pfx in sorted(pfxns)] + terms
         else:
-            return vocab
+            return terms
 
 
 class PrefixCache(object):
@@ -178,10 +178,9 @@ class GraphCache(object):
 if __name__ == '__main__':
     import sys
     args = sys.argv[1:]
+    pfx = args.pop(0) if args else 'schema'
 
     rdfns_tool = Tool()
-
-    pfx = args.pop(0) if args else 'schema'
     uri = rdfns_tool.prefixes.lookup(pfx)
     print("%s: %s" % (pfx, uri))
     for t in rdfns_tool.get_vocab_terms(uri):

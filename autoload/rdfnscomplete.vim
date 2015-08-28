@@ -22,7 +22,7 @@ func! rdfnscomplete#complete(findstart, base)
 
     " 1 - get the text length
     if a:findstart == 1
-        while cpos > 0 && line[cpos - 1] =~ '\a\|_\|-'
+        while cpos > 0 && line[cpos - 1] =~ '\w\|-'
             let cpos -= 1
         endwhile
         return cpos
