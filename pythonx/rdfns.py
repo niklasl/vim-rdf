@@ -2,7 +2,7 @@ import logging
 import re
 import os
 from urllib2 import quote
-from rdflib import Graph, ConjunctiveGraph
+from rdflib import Graph, ConjunctiveGraph, URIRef
 from rdflib.namespace import RDF, RDFS, Namespace, split_uri
 from rdflib.parser import create_input_source
 from rdflib.util import guess_format, SUFFIX_FORMAT_MAP
@@ -81,6 +81,12 @@ class Tool(object):
             results = (curie for curie in curies if curie.startswith(base))
         return [{'word': value, 'icase': 0} for value in results]
 
+    def canonical_prefix(self, buffer, pfx):
+        uri = get_pfxns_map(buffer).get(pfx)
+        if not uri:
+            return pfx
+        return self.prefixes.prefix(uri)
+
     def _get_pfx_declarations(self, pfx_fmt, base):
         results = [pfx_fmt % (pfx, ns)
             for pfx, ns in self.prefixes.namespaces()
@@ -113,6 +119,9 @@ class PrefixCache(object):
     def lookup(self, pfx):
         ns = self._pfxgraph.store.namespace(pfx)
         return ns or self._fetch_ns(pfx)
+
+    def prefix(self, uri):
+        return self._pfxgraph.store.prefix(URIRef(uri.decode('utf-8')))
 
     def namespaces(self):
         return self._pfxgraph.namespaces()
@@ -162,7 +171,7 @@ class GraphCache(object):
             logger.debug("Using context <%s>" % context_id)
             return self.graph.get_context(context_id)
 
-        cache_path = os.path.join(self.cachedir, quote(url, safe="")) + '.ttl'
+        cache_path = self.get_fs_path(url)
         if os.path.exists(cache_path):
             logger.debug("Load local copy of <%s> from '%s'", context_id, cache_path)
             return self.graph.parse(cache_path, format='turtle', publicID=context_id)
@@ -173,6 +182,9 @@ class GraphCache(object):
             with open(cache_path, 'w') as f:
                 graph.serialize(f, format='turtle')
             return graph
+
+    def get_fs_path(self, url):
+        return os.path.join(self.cachedir, quote(url, safe="")) + '.ttl'
 
 
 if __name__ == '__main__':
