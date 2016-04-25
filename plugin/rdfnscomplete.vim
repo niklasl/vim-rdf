@@ -79,15 +79,22 @@ func! s:OpenRDFTerm()
     if colonidx == -1
         return
     endif
-    let pfx = rdfnscomplete#canonical_prefix(colonidx? pname[0:colonidx-1] : '')
+    let pfx = colonidx? pname[0:colonidx-1] : ''
     let lname = pname[colonidx+1:]
+    let uri = rdfnscomplete#expand_pfx(pfx)
     try
-        let fspath = rdfnscomplete#fspath(pfx)
+        let fspath = rdfnscomplete#fspath(uri)
     catch
         let fspath = ''
     endtry
     if fspath != ''
-        exec "sp " . fnameescape(fspath)
-        call search('^'. pfx .':'. lname)
+        let fpath = fnameescape(fspath)
+        if bufloaded(fspath)
+            exec "sb ". fpath
+        else
+            exec "sp ". fpath
+        endif
+        let lpfx = rdfnscomplete#to_pfx(uri)
+        call search('^'. lpfx .':'. lname)
     endif
 endfunc

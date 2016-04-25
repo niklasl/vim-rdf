@@ -81,11 +81,13 @@ class Tool(object):
             results = (curie for curie in curies if curie.startswith(base))
         return [{'word': value, 'icase': 0} for value in results]
 
-    def canonical_prefix(self, buffer, pfx):
-        uri = get_pfxns_map(buffer).get(pfx)
-        if not uri:
-            return pfx
-        return self.prefixes.prefix(uri)
+    def expand_pfx(self, buffer, pfx):
+        return get_pfxns_map(buffer).get(pfx)
+
+    def to_pfx(self, buffer, uri):
+        for pfx, ns in get_pfxns_map(buffer).items():
+            if ns == uri:
+                return pfx
 
     def _get_pfx_declarations(self, pfx_fmt, base):
         results = [pfx_fmt % (pfx, ns)
