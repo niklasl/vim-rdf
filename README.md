@@ -14,5 +14,19 @@ This is a bundle of vimfiles for editing [RDF](http://www.w3.org/TR/rdf11-primer
 
 ## Plugins
 
-* RDF prefix completion (also available on Vim.org as [RDF Namespace-complete](http://www.vim.org/scripts/script.php?script_id=1835)).
+### RDF Prefix Completion
 
+(Prerequisites: Python support in Vim and RDFLib installed in a Python
+environment available to Vim.)
+
+Call
+
+    :RDF
+
+to enable. This automatically sets up the user-defined completefunc (invoked
+with `CTRL-X CTRL-U` in insert mode) to complete on RDF prefixes. It uses
+http://prefix.cc/ under the hood, and automatically dereferences and caches RDF
+vocabularies when completing on defined prefixes.
+
+(And older version of this plugin is available on Vim.org as
+[RDF Namespace-complete](http://www.vim.org/scripts/script.php?script_id=1835).)
