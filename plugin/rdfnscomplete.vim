@@ -75,6 +75,7 @@ endfunc
 
 func! s:OpenRDFTerm()
     let pname = expand("<cWORD>")
+    let pname = substitute(pname, '^[\^]\+\|[,;]$', "", 'g')
     let colonidx = stridx(pname, ':')
     if colonidx == -1
         return
