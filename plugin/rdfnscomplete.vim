@@ -47,7 +47,7 @@
 "
 "   :RDF quit
 "
-" to restore the original completefunc (if any).
+" to restore the original omnifunc (if any).
 "
 " REQUIRES:
 " Vim compiled with Python and RDFLib installed for Python.
@@ -63,12 +63,19 @@ command! -complete=custom,s:RdfnsArgs -nargs=* RDF :call <SID>RDFSetup(<f-args>)
 
 func! s:RDFSetup(...)
     if a:0 > 0
-        call rdfnscomplete#setup(a:1)
-        if a:1 == 'quit'
+        if a:1 == 'reload'
+            call rdfnscomplete#reload()
+        elseif a:1 == 'quit'
+            if exists('b:rdfns_saved_omnifunc')
+                let &omnifunc=b:rdfns_saved_omnifunc
+                unlet b:rdfns_saved_omnifunc
+            endif
+            " TODO: restore original mapping (if any)
             nunmap <buffer> <leader>d
         endif
     else
-        call rdfnscomplete#setup()
+        let b:rdfns_saved_omnifunc = &omnifunc
+        setlocal omnifunc=rdfnscomplete#complete
         nnoremap <buffer> <leader>d :call <SID>OpenRDFTerm()<CR>
     endif
 endfunc

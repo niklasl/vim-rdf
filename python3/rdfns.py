@@ -1,7 +1,11 @@
 import logging
 import re
 import os
-from urllib2 import quote
+try: unicode
+except NameError: unicode = str
+try: from urllib.parse import quote
+except ImportError: from urllib2 import quote
+
 from rdflib import Graph, ConjunctiveGraph, URIRef
 from rdflib.namespace import RDF, RDFS, Namespace, split_uri
 from rdflib.parser import create_input_source

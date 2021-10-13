@@ -1,9 +1,9 @@
-if !has('python')
-    echoerr "Requires vim compiled with +python"
+if !has('python3')
+    echoerr "Requires vim compiled with +python3"
     finish
 endif
 
-python <<END
+python3 <<END
 import vim
 import logging
 logging.getLogger().addHandler(logging.StreamHandler())
@@ -41,49 +41,34 @@ func! rdfnscomplete#complete(findstart, base)
             endif
         endwhile
         let args = [context, a:base]
-        return pyeval("rdfns_tool.get_completions(vim.current.buffer, *vim.eval('l:args'))")
+        return py3eval("rdfns_tool.get_completions(vim.current.buffer, *vim.eval('l:args'))")
 
     endif
 endfunc
 
 
 func! rdfnscomplete#reload()
-    python rdfns_tool = reload(rdfns).Tool()
-endfunc
-
-
-func! rdfnscomplete#setup(...)
-    if a:0 == 0
-        let b:rdfns_saved_completefunc = &completefunc
-        setlocal completefunc=rdfnscomplete#complete
-    elseif a:1 == 'reload'
-        call rdfnscomplete#reload()
-    elseif a:1 == 'quit'
-        if exists('b:rdfns_saved_completefunc')
-            let &completefunc=b:rdfns_saved_completefunc
-            unlet b:rdfns_saved_completefunc
-        endif
-    endif
+    python3 rdfns_tool = reload(rdfns).Tool()
 endfunc
 
 
 func! rdfnscomplete#includeexpr(uri)
-    return pyeval("rdfns_tool.graphcache.get_fs_path(vim.eval('a:uri'))")
+    return py3eval("rdfns_tool.graphcache.get_fs_path(vim.eval('a:uri'))")
 endfunc
 
 
 func! rdfnscomplete#fspath(uri)
-    return pyeval("rdfns_tool.graphcache.get_fs_path(vim.eval('a:uri'))")
+    return py3eval("rdfns_tool.graphcache.get_fs_path(vim.eval('a:uri'))")
 endfunc
 
 
 func! rdfnscomplete#expand_pfx(pfx)
-    return pyeval("rdfns_tool.expand_pfx(vim.current.buffer, vim.eval('a:pfx'))")
+    return py3eval("rdfns_tool.expand_pfx(vim.current.buffer, vim.eval('a:pfx'))")
 endfunc
 
 
 func! rdfnscomplete#to_pfx(uri)
-    return pyeval("rdfns_tool.to_pfx(vim.current.buffer, vim.eval('a:uri'))")
+    return py3eval("rdfns_tool.to_pfx(vim.current.buffer, vim.eval('a:uri'))")
 endfunc
 
 
