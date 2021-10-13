@@ -48,7 +48,8 @@ endfunc
 
 
 func! rdfnscomplete#reload()
-    python3 rdfns_tool = reload(rdfns).Tool()
+    python3 import importlib
+    python3 rdfns_tool = importlib.reload(rdfns).Tool()
 endfunc
 
 
